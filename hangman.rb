@@ -1,6 +1,6 @@
 require 'Set'
 
-class Hangman
+class NoKillHangman
   attr_accessor :guesser, :knower, :board
 
   def initialize
@@ -55,7 +55,7 @@ class Hangman
       @guesser = HumanPlayer.new
       @knower = HumanPlayer.new
     else
-      puts "Invalid input. Exiting."
+      puts "Invalid input. Please try again."
       return false
     end
     true
@@ -75,10 +75,19 @@ class Hangman
 
 end
 
-class ComputerPlayer
-  attr_accessor :dictionary, :secret_word, :letter_array, :used_letters
+class Player
+  attr_accessor :used_letters
 
   def initialize
+    @used_letters = []
+  end
+end
+
+class ComputerPlayer < Player
+  attr_accessor :dictionary, :secret_word, :letter_array
+
+  def initialize
+    super
     @dictionary = []
     File.readlines('./dictionary.txt').each { |line| @dictionary << line.chomp }
 
@@ -86,10 +95,10 @@ class ComputerPlayer
     @secret_word_length = 0
 
     @letter_array = []
-    @used_letters = []
   end
 
   def determine_word
+    # take out words with punctuation inside
     until @secret_word.match(/^(\w)+$/)
       @secret_word = @dictionary.sample
     end
@@ -102,9 +111,9 @@ class ComputerPlayer
     @letter_array = make_letter_array(word_array)
     guess = @letter_array.pop
     
-    print  "Computer guesses #{guess.upcase}: "
+    puts  "Computer guesses #{guess.upcase}: "
     
-    used_letters << guess
+    @used_letters << guess
     guess
   end
 
@@ -151,7 +160,7 @@ class ComputerPlayer
   end
 end
 
-class HumanPlayer
+class HumanPlayer < Player
 
   def determine_word
     puts "KNOWING PLAYER: How long is the word (in characters)?"
@@ -160,8 +169,11 @@ class HumanPlayer
   end
 
   def make_guess(board)
+    puts "Used letters: #{@used_letters.join(' ')}"
     puts "GUESSING PLAYER: Please enter a letter:"
-    gets.chomp
+    guess = gets.chomp.downcase
+    @used_letters << guess
+    guess
   end
 
   def check_guess(letter)
@@ -179,5 +191,5 @@ class HumanPlayer
 
 end
 
-h = Hangman.new
+h = NoKillHangman.new
 h.run
